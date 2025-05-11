@@ -93,12 +93,11 @@ const allHumsters = [
 
 // Действие кнопки «На поиски пушистика!»
 const body = document.querySelector('body');
-const startGameInfo = document.querySelector('.startGameInfo');
+const startGameInfo = body.querySelector('.startGameInfo');
 
 startGameInfo.addEventListener('click', ({ target }) => {
   if (target.classList.contains('startGameButton')) {
-    // Скорее всего будет лучше через добавление класса убирать стартовое окно
-    startGameInfo.style.display = 'none';
+    startGameInfo.remove();
 
     // Показываем игру
     const mainDiv = body.querySelector('.mainDiv');
@@ -107,34 +106,43 @@ startGameInfo.addEventListener('click', ({ target }) => {
     const siteName = body.querySelector('.siteName');
     setTimeout(() => {
       siteName.textContent = 'Какой вид хомячков тебя больше привлекает?';
-
-      setTimeout(() => {
-        siteName.textContent = 'OnlyHumsters.com';
-      }, 10000);
     }, 1000);
+    setTimeout(() => {
+      siteName.textContent = 'OnlyHumsters.com';
+    }, 10000);
 
     // Добавляем кликабельность
     body.addEventListener('click', clickCard);
   }
 });
 
-// Выбор карточки и сохранение выбранного хомяка (коряво сделано)
-let currentHumster = '';
+// Сохраняем выбор
+let currentHumster = [];
 let likedHumsters = [];
 const cards = body.querySelectorAll(`[class^='card']`);
 
-function tapHumster({ target }) {
+function clickCard({ target }) {
+  if (!target.closest(`[class^='card']`) || target.closest('a')) {
+    return;
+  }
+
   currentHumster = target.closest(`[class^='card']`);
   likedHumsters.push(
     currentHumster.querySelector('[class="text-1"]').textContent.trim()
   );
-}
-cards.forEach((element) => {
-  element.addEventListener('click', tapHumster);
-});
 
-// Смена карточки и наполнение её новыми данными
-let counter = 2;
+  switch (currentHumster.className) {
+    case 'card-1':
+      changeCards(cards[1], allHumsters);
+      break;
+    case 'card-2':
+      changeCards(cards[0], allHumsters);
+      break;
+  }
+}
+
+// Смена карточки
+let counter = 2; // две карточки сразу показываются
 const changeCards = (element, array) => {
   if (counter === 10) {
     body.removeEventListener('click', clickCard);
@@ -143,31 +151,19 @@ const changeCards = (element, array) => {
   }
 
   let imgCard = element.querySelector('img');
-  let text = element.querySelectorAll('span');
-  let linkCard = text[0].querySelector('a');
+  let textCard = element.querySelectorAll('span');
+  let linkCard = textCard[0].querySelector('a');
 
   let { name, text1, text2, link, img } = array[counter];
 
   imgCard.src = img;
   linkCard.textContent = name;
-  text[1].textContent = text1;
-  text[2].textContent = text2;
   linkCard.href = link;
+  textCard[1].textContent = text1;
+  textCard[2].textContent = text2;
 
   counter++;
 };
-
-// Логика определения нажатия и запуска кода по смену карточек
-function clickCard({ target }) {
-  if (target.closest('a')) {
-    return;
-  }
-  if (currentHumster.className === 'card-1') {
-    changeCards(cards[1], allHumsters);
-  } else if (currentHumster.className === 'card-2') {
-    changeCards(cards[0], allHumsters);
-  }
-}
 
 function finish(element) {
   const vs = body.querySelector('.betweenCard');
@@ -179,20 +175,13 @@ function finish(element) {
     case 'card-1':
       const card2 = body.querySelector('.card-2');
       card2.remove();
-
       siteName.innerHTML = `Какая милота &#128148; Возможно, он любит погладиться! &#128147;`;
-
       break;
 
     case 'card-2':
       const card1 = body.querySelector('.card-1');
       card1.remove();
-
       siteName.innerHTML = `Он просто чудо &#128152; Думаю он был бы рад тебя понюхать &#128145;`;
-
-      break;
-
-    default:
       break;
   }
 
@@ -200,30 +189,28 @@ function finish(element) {
     siteName.innerHTML = `&#128072; Их ты тоже выбрала`;
     createSideBar(likedHumsters);
   }, 10000);
-
-  cards.forEach((element) => {
-    element.removeEventListener('click', tapHumster);
-  });
 }
-// Рендер бокового меню в конце
+
+// Показ бокового меню в конце
 function createSideBar(array) {
   const mainDivSideBar = document.createElement('div');
   mainDivSideBar.classList.add('mainDivSideBar');
-  let newArray = [...new Set(array)];
-  newArray.forEach((element1, index) => {
-    index = document.createElement('div');
-    index.classList.add('imageCard');
+
+  let newArray = [...new Set(array)]; // убираем дубликаты из массива
+
+  // Рендер
+  newArray.forEach((liked, i) => {
+    i = document.createElement('div');
+    i.classList.add('imageCard');
+
     let image = document.createElement('img');
     image.classList.add('img');
-    let findHumster = allHumsters.find((element) => {
-      if (element1 === element.name) {
-        return element.img;
-      }
-    });
+
+    let findHumster = allHumsters.find((element) => liked === element.name);
     image.src = findHumster.img;
 
-    mainDivSideBar.append(index);
-    index.append(image);
+    mainDivSideBar.append(i);
+    i.append(image);
   });
 
   body.append(mainDivSideBar);
