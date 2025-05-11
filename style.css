@@ -1,9 +1,10 @@
-body {
-  background-color: rgb(254, 235, 238);
    @font-face {
     font-family: 'Comic Sans MS';
-    src: url(onlyHumsters.github.io/fonts/Comic Sans MS);
+    src: url('fonts/Comic Sans MS');
   }
+
+body {
+  background-color: rgb(254, 235, 238);
   font-family: 'Comic Sans MS', 'Comic Sans', cursive;
 }
 
